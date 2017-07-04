@@ -11,22 +11,40 @@
     tools:context="com.balsdon.bleexample.ConnectActivity">
 
     <EditText
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/input" />
-    <Button
+        android:id="@+id/input"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <LinearLayout
+        android:id="@+id/buttons"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/send"
-        android:id="@+id/send"
         android:layout_below="@+id/input"
-        android:enabled="false"
-        />
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/send"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="2"
+            android:enabled="false"
+            android:text="@string/send" />
+
+        <Button
+            android:id="@+id/read"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:enabled="false"
+            android:text="@string/read" />
+    </LinearLayout>
+
     <TextView
         android:id="@+id/log"
-        android:layout_below="@+id/send"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_alignParentBottom="true"
-        />
+        android:layout_below="@+id/buttons"
+        android:maxLines="5000"
+        android:scrollbars="vertical" />
 </RelativeLayout>

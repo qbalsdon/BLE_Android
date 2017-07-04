@@ -6,6 +6,7 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
@@ -16,6 +17,9 @@ import android.bluetooth.le.ScanResult;
 import android.content.Context;
 import android.os.ParcelUuid;
 
+import java.util.HashMap;
+import java.util.UUID;
+
 public class BLEPeripheral {
 
     private String mDeviceId;
@@ -24,6 +28,7 @@ public class BLEPeripheral {
     private BluetoothLeScanner mBLEScanner;
     private BluetoothGatt mBluetoothGatt;
     private BluetoothGattService mService = null;
+    private HashMap<String, Command<String>> subscriptions;
 
     public BLEPeripheral(BLEManager connector, String deviceId) {
         mConnector = connector;
@@ -35,13 +40,16 @@ public class BLEPeripheral {
 
         if (mBluetoothAdapter == null || !mBluetoothAdapter.isEnabled()) {
             mConnector.enableBluetooth();
-        } else {
-            scanForDevice();
-            mConnector.log("BT ENABLED: SCANNING FOR DEVICES");
+            return;
         }
+
+        if (!mConnector.checkPermission()) return;
+
+        scanForDevice();
     }
 
     public void scanForDevice() {
+        mConnector.log("BT ENABLED: SCANNING FOR DEVICES");
         mBLEScanner = mBluetoothAdapter.getBluetoothLeScanner();
         mBLEScanner.startScan(mLEScanCallback);
     }
@@ -91,8 +99,8 @@ public class BLEPeripheral {
         scanForDevice();
     }
 
-    private final BluetoothGattCallback mGattCallback =
-            new BluetoothGattCallback() {
+    private final BluetoothGattCallback mGattCallback = new BluetoothGattCallback() {
+        StringBuilder buffer;
                 @Override
                 public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
                     mConnector.onConnectionStateChange(newState);
@@ -124,11 +132,35 @@ public class BLEPeripheral {
                 }
 
                 @Override
-                public void onCharacteristicRead(BluetoothGatt gatt,
-                                                 BluetoothGattCharacteristic characteristic,
-                                                 int status) {
+                public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
                     if (status == BluetoothGatt.GATT_SUCCESS) {
-                        mConnector.log(String.format("onCharacteristicRead received: [%s]", status));
+                        mConnector.log(String.format("onCharacteristicRead received: [%s] value: [%s]", characteristic.getUuid().toString(), new String(characteristic.getValue())));
+                    } else {
+                        mConnector.log(String.format("onCharacteristicRead fail received: [%s]", status));
+                    }
+                }
+
+                @Override
+                public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
+                    super.onCharacteristicWrite(gatt, characteristic, status);
+                    if (status == BluetoothGatt.GATT_SUCCESS) {
+                        mConnector.log(String.format("onCharacteristicWrite received: [%s] value: [%s]", characteristic.getUuid().toString(), new String(characteristic.getValue())));
+                    }
+                }
+
+                @Override
+                public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
+                    String packet = new String(characteristic.getValue());
+                    if (packet.equals("α")) {
+                        buffer = new StringBuilder();
+                    } else if (packet.equals("ω")) {
+                        //mConnector.log(String.format("Characteristic received: [%s] Value: [%s]", characteristic.getUuid().toString(), buffer.toString()));
+                        if (subscriptions == null || subscriptions.size() == 0) return;
+
+                        Command<String> handler = subscriptions.get(characteristic.getUuid().toString());
+                        if (handler != null) handler.execute(new String(buffer.toString()));
+                    } else {
+                        buffer.append(packet);
                     }
                 }
             };
@@ -144,7 +176,24 @@ public class BLEPeripheral {
         return null;
     }
 
-    public void sendData(String characteristicId, String data) {
+    public void subscribe(String characteristicId, Command<String> handler){
+        if (subscriptions == null) subscriptions = new HashMap<>();
+        BluetoothGattCharacteristic characteristic = findCharacteristicById(characteristicId);
+
+        if (characteristic == null) {
+            mConnector.log("Characteristic does not exist");
+            return;
+        }
+
+        mBluetoothGatt.setCharacteristicNotification(characteristic, true);
+        BluetoothGattDescriptor descriptor = characteristic.getDescriptor(UUID.fromString("00002902-0000-1000-8000-00805f9b34fb"));
+        descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
+        mBluetoothGatt.writeDescriptor(descriptor);
+
+        subscriptions.put(characteristicId, handler);
+    }
+
+    public void writeCharacteristic(String characteristicId, String data) {
         BluetoothGattCharacteristic characteristic = findCharacteristicById(characteristicId);
         if (characteristic != null) {
             characteristic.setValue(data);
@@ -153,5 +202,11 @@ public class BLEPeripheral {
         } else {
             mConnector.log(String.format("[%s] not found on device", characteristicId));
         }
+    }
+
+    public void readCharacteristic(String characteristicId) {
+        BluetoothGattCharacteristic characteristic = findCharacteristicById(characteristicId);
+        if (characteristic == null) return;
+        mBluetoothGatt.readCharacteristic(characteristic);
     }
 }

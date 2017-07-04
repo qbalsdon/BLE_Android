@@ -2,4 +2,5 @@
     <string name="app_name">BLEExample</string>
     <string name="ble_not_supported">BLE is not supported</string>
     <string name="send">SEND DATA</string>
+    <string name="read">Read</string>
 </resources>

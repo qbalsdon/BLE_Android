@@ -10,4 +10,5 @@ public interface BLEManager {
     void enableBluetooth();
     void onConnected();
     void onDisconnected();
+    boolean checkPermission();
 }

@@ -151,9 +151,9 @@ public class BLEPeripheral {
                 @Override
                 public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
                     String packet = new String(characteristic.getValue());
-                    if (packet.equals("α")) {
+                    if (packet.equals(String.valueOf((char)2))) {
                         buffer = new StringBuilder();
-                    } else if (packet.equals("ω")) {
+                    } else if (packet.equals(String.valueOf((char)3))) {
                         //mConnector.log(String.format("Characteristic received: [%s] Value: [%s]", characteristic.getUuid().toString(), buffer.toString()));
                         if (subscriptions == null || subscriptions.size() == 0) return;
 

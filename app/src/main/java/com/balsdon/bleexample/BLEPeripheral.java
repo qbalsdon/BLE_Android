@@ -22,40 +22,42 @@ import java.util.UUID;
 
 public class BLEPeripheral {
 
-    private String mDeviceId;
-    private BLEManager mConnector;
-    private BluetoothAdapter mBluetoothAdapter;
-    private BluetoothLeScanner mBLEScanner;
-    private BluetoothGatt mBluetoothGatt;
-    private BluetoothGattService mService = null;
+    private String deviceId;
+    private BLEManager connector;
+    private BluetoothAdapter bluetoothAdapter;
+    private BluetoothLeScanner bluetoothLeScanner;
+    private BluetoothGatt bluetoothGatt;
+    private BluetoothGattService bluetoothGattService = null;
     private HashMap<String, Command<String>> subscriptions;
 
     public BLEPeripheral(BLEManager connector, String deviceId) {
-        mConnector = connector;
-        mDeviceId = deviceId;
+        this.connector = connector;
+        this.deviceId = deviceId;
 
-        mConnector.onDisconnected();
-        final BluetoothManager bluetoothManager = (BluetoothManager) mConnector.getContext().getSystemService(Context.BLUETOOTH_SERVICE);
-        mBluetoothAdapter = bluetoothManager.getAdapter();
+        this.connector.onDisconnected();
+        final BluetoothManager bluetoothManager = (BluetoothManager) this.connector.getContext().getSystemService(Context.BLUETOOTH_SERVICE);
+        bluetoothAdapter = bluetoothManager.getAdapter();
 
-        if (mBluetoothAdapter == null || !mBluetoothAdapter.isEnabled()) {
-            mConnector.enableBluetooth();
+        if (bluetoothAdapter == null || !bluetoothAdapter.isEnabled()) {
+            this.connector.enableBluetooth();
             return;
         }
 
-        if (!mConnector.checkPermission()) return;
+        if (!this.connector.checkPermission()) return;
 
         scanForDevice();
     }
 
     public void scanForDevice() {
-        mConnector.log("BT ENABLED: SCANNING FOR DEVICES");
-        mBLEScanner = mBluetoothAdapter.getBluetoothLeScanner();
-        mBLEScanner.startScan(mLEScanCallback);
+        connector.log("BT ENABLED: SCANNING FOR DEVICES");
+        connector.reportState(BleManagerStatus.SEARCH_START);
+        bluetoothLeScanner = bluetoothAdapter.getBluetoothLeScanner();
+        bluetoothLeScanner.startScan(mLEScanCallback);
     }
 
     public void stopScan() {
-        mBLEScanner.stopScan(mLEScanCallback);
+        connector.reportState(BleManagerStatus.SCAN_CANCEL);
+        bluetoothLeScanner.stopScan(mLEScanCallback);
     }
 
     private ScanCallback mLEScanCallback = new ScanCallback() {
@@ -64,7 +66,7 @@ public class BLEPeripheral {
             BluetoothDevice device = result.getDevice();
             ScanRecord record = result.getScanRecord();
             if (record == null) {
-                mConnector.log(String.format("Device [%s] has no scan record", device.getAddress()));
+                connector.log(String.format("Device [%s] has no scan record", device.getAddress()));
                 return;
             }
 
@@ -73,29 +75,31 @@ public class BLEPeripheral {
 
             if (record.getServiceUuids() != null) {
                 for (ParcelUuid pId : record.getServiceUuids()) {
-                    if (pId.getUuid().toString().equals(mDeviceId)) {
+                    if (pId.getUuid().toString().equals(deviceId)) {
                         UUID = pId.getUuid().toString();
                     }
                 }
             }
             if (UUID == null) {
-                mConnector.log(String.format("Discovered Device [%s]. Continuing search", name));
+                if (name != null) connector.log(String.format("Discovered Device [%s]. Continuing search", name));
                 return;
             }
-            mConnector.log(String.format("Peripheral [%s] located on Device [%s]. Attempting connection", UUID, name));
-            mBluetoothGatt = device.connectGatt(mConnector.getContext(), true, mGattCallback);
+            connector.log(String.format("Peripheral [%s] located on Device [%s]. Attempting connection", UUID, name));
+            bluetoothGatt = device.connectGatt(connector.getContext(), true, mGattCallback);
             stopScan();
+            connector.reportState(BleManagerStatus.DEVICE_FOUND);
             super.onScanResult(callbackType, result);
         }
     };
 
     private void closeGatt() {
-        mConnector.onDisconnected();
-        if (mBluetoothGatt == null) {
+        connector.reportState(BleManagerStatus.DICSONNECT);
+        connector.onDisconnected();
+        if (bluetoothGatt == null) {
             return;
         }
-        mBluetoothGatt.close();
-        mBluetoothGatt = null;
+        bluetoothGatt.close();
+        bluetoothGatt = null;
         scanForDevice();
     }
 
@@ -103,12 +107,13 @@ public class BLEPeripheral {
         StringBuilder buffer;
                 @Override
                 public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
-                    mConnector.onConnectionStateChange(newState);
+                    connector.onConnectionStateChange(newState);
                     if (newState == BluetoothProfile.STATE_CONNECTED) {
-                        mConnector.log("Connected to device GATT. Discovering services");
-                        mBluetoothGatt.discoverServices();
+                        connector.log("Connected to device GATT. Discovering services");
+                        connector.reportState(BleManagerStatus.DEVICE_CONNECTED);
+                        bluetoothGatt.discoverServices();
                     } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-                        mConnector.log("Disconnected from GATT server. Continuing scanning");
+                        connector.log("Disconnected from GATT server. Continuing scanning");
                         closeGatt();
                     }
                 }
@@ -116,27 +121,27 @@ public class BLEPeripheral {
                 @Override
                 public void onServicesDiscovered(BluetoothGatt gatt, int status) {
                     if (status == BluetoothGatt.GATT_SUCCESS) {
-                        if (mBluetoothGatt.getServices() != null) {
-                            for (BluetoothGattService service : mBluetoothGatt.getServices()) {
-                                if (service.getUuid().toString().equals(mDeviceId)) {
-                                    mService = service;
-                                    mConnector.onConnected();
-                                    mConnector.log("Service discovered");
+                        if (bluetoothGatt.getServices() != null) {
+                            for (BluetoothGattService service : bluetoothGatt.getServices()) {
+                                if (service.getUuid().toString().equals(deviceId)) {
+                                    bluetoothGattService = service;
+                                    connector.onConnected();
+                                    connector.log("Service discovered");
                                 }
                             }
                         }
 
                     } else {
-                        mConnector.log(String.format("onServicesDiscovered received: [%s]", status));
+                        connector.log(String.format("onServicesDiscovered received: [%s]", status));
                     }
                 }
 
                 @Override
                 public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
                     if (status == BluetoothGatt.GATT_SUCCESS) {
-                        mConnector.log(String.format("onCharacteristicRead received: [%s] value: [%s]", characteristic.getUuid().toString(), new String(characteristic.getValue())));
+                        connector.log(String.format("onCharacteristicRead received: [%s] value: [%s]", characteristic.getUuid().toString(), new String(characteristic.getValue())));
                     } else {
-                        mConnector.log(String.format("onCharacteristicRead fail received: [%s]", status));
+                        connector.log(String.format("onCharacteristicRead fail received: [%s]", status));
                     }
                 }
 
@@ -144,7 +149,7 @@ public class BLEPeripheral {
                 public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
                     super.onCharacteristicWrite(gatt, characteristic, status);
                     if (status == BluetoothGatt.GATT_SUCCESS) {
-                        mConnector.log(String.format("onCharacteristicWrite received: [%s] value: [%s]", characteristic.getUuid().toString(), new String(characteristic.getValue())));
+                        connector.log(String.format("onCharacteristicWrite received: [%s] value: [%s]", characteristic.getUuid().toString(), new String(characteristic.getValue())));
                     }
                 }
 
@@ -154,7 +159,6 @@ public class BLEPeripheral {
                     if (packet.equals(String.valueOf((char)2))) {
                         buffer = new StringBuilder();
                     } else if (packet.equals(String.valueOf((char)3))) {
-                        //mConnector.log(String.format("Characteristic received: [%s] Value: [%s]", characteristic.getUuid().toString(), buffer.toString()));
                         if (subscriptions == null || subscriptions.size() == 0) return;
 
                         Command<String> handler = subscriptions.get(characteristic.getUuid().toString());
@@ -166,12 +170,12 @@ public class BLEPeripheral {
             };
 
     public BluetoothGattService getService() {
-        return mService;
+        return bluetoothGattService;
     }
 
     private BluetoothGattCharacteristic findCharacteristicById(String id) {
-        if (mService.getCharacteristics() != null) {
-            return mService.getCharacteristic(java.util.UUID.fromString(id));
+        if (bluetoothGattService.getCharacteristics() != null) {
+            return bluetoothGattService.getCharacteristic(java.util.UUID.fromString(id));
         }
         return null;
     }
@@ -181,14 +185,14 @@ public class BLEPeripheral {
         BluetoothGattCharacteristic characteristic = findCharacteristicById(characteristicId);
 
         if (characteristic == null) {
-            mConnector.log("Characteristic does not exist");
+            connector.log("Characteristic does not exist");
             return;
         }
-
-        mBluetoothGatt.setCharacteristicNotification(characteristic, true);
+        connector.reportState(BleManagerStatus.CHARACTERISTIC_SUBSCRIBED);
+        bluetoothGatt.setCharacteristicNotification(characteristic, true);
         BluetoothGattDescriptor descriptor = characteristic.getDescriptor(UUID.fromString("00002902-0000-1000-8000-00805f9b34fb"));
         descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
-        mBluetoothGatt.writeDescriptor(descriptor);
+        bluetoothGatt.writeDescriptor(descriptor);
 
         subscriptions.put(characteristicId, handler);
     }
@@ -197,16 +201,16 @@ public class BLEPeripheral {
         BluetoothGattCharacteristic characteristic = findCharacteristicById(characteristicId);
         if (characteristic != null) {
             characteristic.setValue(data);
-            mBluetoothGatt.writeCharacteristic(characteristic);
-            mConnector.log(String.format("Wrote [%s] to [%s]", data, characteristicId));
+            bluetoothGatt.writeCharacteristic(characteristic);
+            connector.log(String.format("Wrote [%s] to [%s]", data, characteristicId));
         } else {
-            mConnector.log(String.format("[%s] not found on device", characteristicId));
+            connector.log(String.format("[%s] not found on device", characteristicId));
         }
     }
 
     public void readCharacteristic(String characteristicId) {
         BluetoothGattCharacteristic characteristic = findCharacteristicById(characteristicId);
         if (characteristic == null) return;
-        mBluetoothGatt.readCharacteristic(characteristic);
+        bluetoothGatt.readCharacteristic(characteristic);
     }
 }

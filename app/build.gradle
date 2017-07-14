@@ -1,12 +1,12 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 23
-    buildToolsVersion '25.0.0'
+    compileSdkVersion 25
+    buildToolsVersion '26.0.0'
     defaultConfig {
-        applicationId "com.balsdon.bleexample"
+        applicationId "com.balsdon.pi_ble"
         minSdkVersion 21
-        targetSdkVersion 23
+        targetSdkVersion 25
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -17,6 +17,16 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    productFlavors {
+        dev {
+            applicationIdSuffix ".dev"
+            versionNameSuffix "-dev"
+        }
+        prod {
+            applicationIdSuffix ".full"
+            versionNameSuffix ""
+        }
+    }
 }
 
 dependencies {
@@ -24,6 +34,10 @@ dependencies {
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-    compile 'com.android.support:appcompat-v7:23.4.0'
+
+    compile 'com.android.support:appcompat-v7:25.3.1'
+    compile 'com.android.support:support-compat:25.3.1'
+    compile 'com.android.support:design:25.3.1'
+    
     testCompile 'junit:junit:4.12'
 }

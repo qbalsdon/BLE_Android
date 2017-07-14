@@ -1,6 +1,19 @@
 <resources>
-    <string name="app_name">BLEExample</string>
+    <string name="app_name">Raspberry Blue</string>
     <string name="ble_not_supported">BLE is not supported</string>
-    <string name="send">SEND DATA</string>
-    <string name="read">Read</string>
+    <string name="action_wifi">Wifi</string>
+    <string name="empty">Nothing defined</string>
+    <string name="action_ip">I.P.</string>
+    <string name="action_ssh">SSH</string>
+    <string name="action_vnc">VNC</string>
+    <string name="action_stats">Stats</string>
+    <string name="action_power">Power</string>
+    <string name="status_start">Searching for Raspberry Pi</string>
+    <string name="status_found">Pi Located! Connecting</string>
+    <string name="status_disconnected">Disconnected from Pi!</string>
+    <string name="status_cancel_search">Search cancelled</string>
+    <string name="status_connected">Connected to Pi</string>
+    <string name="status_subscribed">Subscribed to Pi</string>
+    <string name="copy_toast">\'%s\' copied to clipboard</string>
+    <string name="title_wifi_list">Detected Wifi:</string>
 </resources>

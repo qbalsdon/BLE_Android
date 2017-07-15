@@ -31,4 +31,15 @@
         android:textSize="25sp"
         tools:text="Scanning for devices"/>
 
+    <ImageView
+        android:id="@+id/loading_help"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_help"
+        android:layout_marginTop="@dimen/activity_horizontal_margin"
+        android:layout_marginEnd="@dimen/activity_horizontal_margin"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:alpha="0.5"/>
+
 </RelativeLayout>

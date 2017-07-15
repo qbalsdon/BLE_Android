@@ -12,6 +12,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.support.annotation.IdRes;
 import android.support.annotation.StringRes;
 import android.support.design.widget.BaseTransientBottomBar;
 import android.support.design.widget.Snackbar;
@@ -21,12 +22,22 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.method.ScrollingMovementMethod;
+import android.view.ContextMenu;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.LinearInterpolator;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.balsdon.bleexample.linux.TerminalResponse;
 import com.balsdon.bleexample.linux.TerminalCommands;
+import com.balsdon.bleexample.ui.ActionButton;
+import com.balsdon.bleexample.ui.StatsDialog;
+import com.balsdon.bleexample.ui.WifiInfoDialog;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class ConnectActivity extends AppCompatActivity implements BLEManager {
 
@@ -35,13 +46,27 @@ public class ConnectActivity extends AppCompatActivity implements BLEManager {
     private static final String TAG = "ConnectActivity";
     private static final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
 
-    private static int REQUEST_ENABLE_BT = 10001;
+    private static final int REQUEST_ENABLE_BT = 10001;
+    private static final int POWER_OFF = 1;
+    private static final int POWER_RESTART = 2;
+    private static final int SSH_ENABLE = 3;
+    private static final int SSH_DISABLE = 4;
+    private static final int SSH_OPEN_APP = 5;
+    private static final int VNC_ENABLE = 6;
+    private static final int VNC_DISABLE = 7;
+    private static final int VNC_OPEN_APP = 8;
+    private static final int STATS_TEMPERATURE = 9;
+    private static final int STATS_CPU = 10;
 
     private static final String DEVICE_ID = "4afb720a-5214-4337-841b-d5f954214877";
-    private static final String CHARACTERISTIC_ID = "8bacc104-15eb-4b37-bea6-0df3ac364199";//"53b3d959-7dd3-4839-94e1-7b0eaea9aac2";
+    private static final String CHARACTERISTIC_ID = "8bacc104-15eb-4b37-bea6-0df3ac364199";
 
     private enum CurrentHandleStateEnum {
         NONE, WIFI_LIST, WIFI_CONNECT, IP, SSH, VNC, STATS, POWER
+    }
+
+    private enum Action {
+        NONE, WIFI, IP, SSH, VNC, STATS, POWER
     }
 
     private BLEPeripheral blePeripheral;
@@ -51,6 +76,7 @@ public class ConnectActivity extends AppCompatActivity implements BLEManager {
     private TextView userLogText;
     private boolean isLoadingShowing = true;
     private CurrentHandleStateEnum state = CurrentHandleStateEnum.NONE;
+    private HashMap<Action, ActionButton> controls;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,12 +96,8 @@ public class ConnectActivity extends AppCompatActivity implements BLEManager {
 
         blePeripheral = new BLEPeripheral(this, DEVICE_ID);
 
-        findViewById(R.id.action_wifi).findViewById(R.id.action_button).setOnClickListener(wifiListListener);
-        findViewById(R.id.action_ip).findViewById(R.id.action_button).setOnClickListener(ipListener);
-        findViewById(R.id.action_ssh).findViewById(R.id.action_button).setOnClickListener(sshListener);
-        findViewById(R.id.action_vnc).findViewById(R.id.action_button).setOnClickListener(vncListener);
-        findViewById(R.id.action_stats).findViewById(R.id.action_button).setOnClickListener(statsListener);
-        findViewById(R.id.action_power).findViewById(R.id.action_button).setOnClickListener(powerListener);
+        controls = new HashMap<>();
+        findControls();
 
         ActionBar actionbar = getSupportActionBar();
         if (actionbar != null) {
@@ -83,6 +105,85 @@ public class ConnectActivity extends AppCompatActivity implements BLEManager {
             actionbar.setLogo(R.drawable.raspberry_title);
             actionbar.setDisplayUseLogoEnabled(true);
         }
+    }
+
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+        switch (v.getId()) {
+            case R.id.action_power:
+                menu.setHeaderTitle(R.string.menu_power_title);
+                menu.add(Menu.NONE, POWER_RESTART, Menu.NONE, R.string.menu_power_restart);
+                menu.add(Menu.NONE, POWER_OFF, Menu.NONE, R.string.menu_power_poweroff);
+                break;
+            case R.id.action_ssh:
+                menu.setHeaderTitle(R.string.menu_ssh_title);
+                menu.add(Menu.NONE, SSH_ENABLE, Menu.NONE, R.string.menu_ssh_enable);
+                menu.add(Menu.NONE, SSH_DISABLE, Menu.NONE, R.string.menu_ssh_disable);
+                menu.add(Menu.NONE, SSH_OPEN_APP, Menu.NONE, R.string.menu_ssh_open_app);
+                break;
+            case R.id.action_vnc:
+                menu.setHeaderTitle(R.string.menu_vnc_title);
+                menu.add(Menu.NONE, VNC_ENABLE, Menu.NONE, R.string.menu_vnc_enable);
+                menu.add(Menu.NONE, VNC_DISABLE, Menu.NONE, R.string.menu_vnc_disable);
+                menu.add(Menu.NONE, VNC_OPEN_APP, Menu.NONE, R.string.menu_vnc_open_app);
+                break;
+            case R.id.action_stats:
+                menu.setHeaderTitle(R.string.menu_stats_title);
+                menu.add(Menu.NONE, STATS_TEMPERATURE, Menu.NONE, R.string.menu_stats_temperature);
+                menu.add(Menu.NONE, STATS_CPU, Menu.NONE, R.string.menu_stats_system_info);
+                break;
+        }
+    }
+
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case POWER_OFF:
+                state = CurrentHandleStateEnum.POWER;
+                blePeripheral.writeCharacteristic(CHARACTERISTIC_ID, TerminalCommands.SHUTDOWN);
+                break;
+            case POWER_RESTART:
+                state = CurrentHandleStateEnum.POWER;
+                blePeripheral.writeCharacteristic(CHARACTERISTIC_ID, TerminalCommands.REBOOT);
+                break;
+            case SSH_OPEN_APP:
+            case SSH_ENABLE:
+                runCommand(Action.SSH, CurrentHandleStateEnum.SSH, TerminalCommands.ENABLE_SSH);
+                break;
+            case SSH_DISABLE:
+                runCommand(Action.SSH, CurrentHandleStateEnum.SSH, TerminalCommands.DISABLE_SSH);
+                break;
+            case VNC_OPEN_APP:
+            case VNC_ENABLE:
+                runCommand(Action.VNC, CurrentHandleStateEnum.VNC, TerminalCommands.ENABLE_VNC);
+                break;
+            case VNC_DISABLE:
+                runCommand(Action.VNC, CurrentHandleStateEnum.VNC, TerminalCommands.DISABLE_VNC);
+                break;
+            case STATS_TEMPERATURE:
+                runCommand(Action.STATS, CurrentHandleStateEnum.STATS, TerminalCommands.STAT_TEMP);
+                break;
+            case STATS_CPU:
+                runCommand(Action.STATS, CurrentHandleStateEnum.STATS, TerminalCommands.STAT_CPU);
+                break;
+        }
+        return super.onContextItemSelected(item);
+    }
+
+
+    private void findActionButton(Action action, @IdRes int parentId, View.OnClickListener listener) {
+        ActionButton button = (ActionButton) findViewById(parentId);
+        button.setOnClickListener(listener);
+        controls.put(action, button);
+    }
+
+    private void findControls() {
+        findActionButton(Action.WIFI, R.id.action_wifi, wifiListListener);
+        findActionButton(Action.IP, R.id.action_ip, ipListener);
+        findActionButton(Action.SSH, R.id.action_ssh, sshListener);
+        findActionButton(Action.VNC, R.id.action_vnc, vncListener);
+        findActionButton(Action.STATS, R.id.action_stats, statsListener);
+        findActionButton(Action.POWER, R.id.action_power, powerListener);
     }
 
     @Override
@@ -191,6 +292,7 @@ public class ConnectActivity extends AppCompatActivity implements BLEManager {
 
     private void showButtons() {
         animateViewAlpha(false);
+        resetControls();
     }
 
     private void hideButtons() {
@@ -260,69 +362,153 @@ public class ConnectActivity extends AppCompatActivity implements BLEManager {
             }
         }
     }
-    private void showMessage(String message, @StringRes int actionRes, Command<String> action) {
-        showMessage(message, getString(actionRes), action);
+
+    private void showMessage(@StringRes int messageRes) {
+        showMessage(getString(messageRes), null, null, null);
     }
 
-    private void showMessage(final String message, String actionString, final Command<String> action) {
+    private void showMessage(String message, @StringRes int actionStringRes, Command<String> action) {
+        showMessage(message, getString(actionStringRes), message, action);
+    }
+
+    private void showMessage(String message, @StringRes int actionStringRes, String data, Command<String> action) {
+        showMessage(message, getString(actionStringRes), data, action);
+    }
+
+    private void showMessage(String message, String actionString, final String data, final Command<String> action) {
         Snackbar snack = Snackbar.make(findViewById(R.id.top), message, BaseTransientBottomBar.LENGTH_LONG);
-        snack.setAction(actionString, new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                action.execute(message);
-            }
-        });
+        if (action != null && actionString != null && actionString.trim().length() > 0) {
+            snack.setAction(actionString, new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    action.execute(data);
+                }
+            });
+        }
         snack.show();
     }
 
     private void handleData(String data) {
+        resetControls();
         switch (state) {
             case WIFI_LIST:
                 userSelectWifi(data.replace("SSID: ", "").split("\n"));
                 break;
-            case WIFI_CONNECT:
+            case WIFI_CONNECT: {
+                data = data.replace("\n", "");
+                TerminalResponse terminalResponse = TerminalResponse.getResponse(data);
+                switch (terminalResponse) {
+                    case OK:
+                        showMessage(R.string.success);
+                        break;
+                    case CONNECTION_EXISTS:
+                        showMessage(R.string.error_wifi_exists);
+                        break;
+                    case NO_CONNECTION:
+                        showMessage(R.string.error_wifi_no_connection);
+                        break;
+                }
                 break;
+            }
             case IP:
                 showMessage(data.replace("\n", ""), android.R.string.copy, copyCommand);
                 break;
-            case SSH:
+            case SSH: {
+                data = data.replace("\n", "");
+                TerminalResponse terminalResponse = TerminalResponse.getResponse(data);
+                switch (terminalResponse) {
+                    case SSH_STARTED:
+                        data = data.replace("SSH started: ", "");
+                        showMessage(String.format(getString(R.string.success_ssh_message), data), R.string.connect, data, openSshCommand);
+                        break;
+                    case SSH_STOPPED:
+                        showMessage(R.string.success_ssh_stopped_message);
+                        break;
+                    case SSH_START_FAIL:
+                        showMessage(R.string.error_ssh_fail);
+                        break;
+                }
                 break;
-            case VNC:
+            }
+            case VNC: {
+                data = data.replace("\n", "");
+                TerminalResponse terminalResponse = TerminalResponse.getResponse(data);
+                switch (terminalResponse) {
+                    case VNC_STARTED:
+                        data = data.replace("VNC started: ", "");
+                        showMessage(String.format(getString(R.string.success_vnc_message), data), R.string.connect, data, openVncCommand);
+                        break;
+                    case VNC_STOPPED:
+                        showMessage(R.string.success_vnc_stopped_message);
+                        break;
+                    case VNC_START_FAIL:
+                        showMessage(R.string.error_ssh_fail);
+                        break;
+                }
                 break;
-            case STATS:
-                android.util.Log.d("STATS", String.format("STATS: [%s]", data));
+            }
+            case STATS: {
+                if (data.toLowerCase().contains("temp")) {
+                    StatsDialog.create(this, StatsDialog.Type.TEMPERATURE, String.format("%.2f", Float.parseFloat(data.replaceAll("[^0-9?!\\.]","")))).show();
+                } else {
+                    StatsDialog.create(this, StatsDialog.Type.CPU_INFO, data).show();
+                }
                 break;
-            case POWER:
+            }
+            case POWER: {
                 break;
+            }
         }
+    }
+
+    private void disableAndAnimate(Action action) {
+        for (Map.Entry<Action, ActionButton> entry : controls.entrySet()) {
+            if (entry.getKey() == action) continue;
+            entry.getValue().setEnabled(false);
+        }
+        controls.get(action).setLoading(true);
+    }
+
+    private void resetControls() {
+        for (Map.Entry<Action, ActionButton> entry : controls.entrySet()) {
+            entry.getValue().setEnabled(true);
+            entry.getValue().setLoading(false);
+        }
+    }
+
+    private void runCommand(Action action, CurrentHandleStateEnum state, String terminalCommand) {
+        disableAndAnimate(action);
+        this.state = state;
+        blePeripheral.writeCharacteristic(CHARACTERISTIC_ID, terminalCommand);
     }
 
     private View.OnClickListener wifiListListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            state = CurrentHandleStateEnum.WIFI_LIST;
-            blePeripheral.writeCharacteristic(CHARACTERISTIC_ID, TerminalCommands.LIST_WIFI);
+            runCommand(Action.WIFI, CurrentHandleStateEnum.WIFI_LIST, TerminalCommands.LIST_WIFI);
         }
     };
 
     private View.OnClickListener ipListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            state = CurrentHandleStateEnum.IP;
-            blePeripheral.writeCharacteristic(CHARACTERISTIC_ID, TerminalCommands.GET_IP);
+            runCommand(Action.IP, CurrentHandleStateEnum.IP, TerminalCommands.GET_IP);
         }
     };
 
     private View.OnClickListener sshListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-
+            registerForContextMenu(controls.get(Action.SSH));
+            openContextMenu(controls.get(Action.SSH));
         }
     };
 
     private View.OnClickListener vncListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
+            registerForContextMenu(controls.get(Action.VNC));
+            openContextMenu(controls.get(Action.VNC));
 
         }
     };
@@ -330,15 +516,16 @@ public class ConnectActivity extends AppCompatActivity implements BLEManager {
     private View.OnClickListener statsListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            state = CurrentHandleStateEnum.STATS;
-            blePeripheral.writeCharacteristic(CHARACTERISTIC_ID, "");
+            registerForContextMenu(controls.get(Action.STATS));
+            openContextMenu(controls.get(Action.STATS));
         }
     };
 
     private View.OnClickListener powerListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-
+            registerForContextMenu(controls.get(Action.POWER));
+            openContextMenu(controls.get(Action.POWER));
         }
     };
 
@@ -352,21 +539,41 @@ public class ConnectActivity extends AppCompatActivity implements BLEManager {
         }
     };
 
+    private Command<String> wifiCommand = new Command<String>() {
+        @Override
+        public void execute(String data) {
+            state = CurrentHandleStateEnum.WIFI_CONNECT;
+            blePeripheral.writeCharacteristic(CHARACTERISTIC_ID, data);
+        }
+    };
+
+    private Command<String> openSshCommand = new Command<String>() {
+        @Override
+        public void execute(String data) {
+            copyCommand.execute(data);
+            //TODO: open SSH app or go to store
+        }
+    };
+
+    private Command<String> openVncCommand = new Command<String>() {
+        @Override
+        public void execute(String data) {
+            copyCommand.execute(data);
+            //TODO: open VNC app or go to store
+        }
+    };
+
     private void userSelectWifi(final String[] options) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(R.string.title_wifi_list);
 
-        builder.setSingleChoiceItems(options, 0, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                Toast.makeText(ConnectActivity.this, which + " selected", Toast.LENGTH_SHORT).show();
-            }
-        });
+        builder.setSingleChoiceItems(options, 0, null);
 
         builder.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                Toast.makeText(ConnectActivity.this, which + " selected", Toast.LENGTH_SHORT).show();
+                which = ((AlertDialog) dialog).getListView().getCheckedItemPosition();
+                WifiInfoDialog.create(ConnectActivity.this, options[which], wifiCommand).show();
             }
         });
         builder.setNegativeButton(android.R.string.cancel, null);

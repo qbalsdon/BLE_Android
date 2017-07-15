@@ -16,6 +16,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.balsdon.bleexample.R;
+import com.vlad1m1r.lemniscate.roulette.EpitrochoidProgressView;
+import com.vlad1m1r.lemniscate.roulette.HypotrochoidProgressView;
 
 /*************************************************************************
  *
@@ -40,6 +42,7 @@ public class ActionButton extends LinearLayout {
 
     private Button buttonView;
     private ImageView imageView;
+    private HypotrochoidProgressView loadingView;
 
     public ActionButton(Context context) {
         super(context);
@@ -59,8 +62,9 @@ public class ActionButton extends LinearLayout {
         inflate(getContext(), R.layout.action_button, this);
 
 
-        buttonView = (Button)findViewById(R.id.action_button);
-        imageView = (ImageView)findViewById(R.id.action_button_image);
+        buttonView = (Button) findViewById(R.id.action_button);
+        imageView = (ImageView) findViewById(R.id.action_button_image);
+        loadingView = (HypotrochoidProgressView) findViewById(R.id.action_button_loading_image);
 
         if (attrs == null) return;
         TypedArray typedArray = getContext().getTheme().obtainStyledAttributes(attrs, R.styleable.action_button, 0, 0);
@@ -75,5 +79,27 @@ public class ActionButton extends LinearLayout {
 
     public void setImage(@DrawableRes int reference) {
         imageView.setImageDrawable(ContextCompat.getDrawable(getContext(), reference));
+    }
+
+    public void setOnClickListener(View.OnClickListener listener) {
+        buttonView.setOnClickListener(listener);
+    }
+
+    public void setLoading(boolean isLoading) {
+        if (isLoading) {
+            buttonView.setVisibility(View.GONE);
+            imageView.setVisibility(View.GONE);
+            loadingView.setVisibility(View.VISIBLE);
+            loadingView.animate();
+        } else {
+            buttonView.setVisibility(View.VISIBLE);
+            imageView.setVisibility(View.VISIBLE);
+            loadingView.setVisibility(View.GONE);
+        }
+    }
+
+    @Override
+    public void setEnabled(boolean enable) {
+        buttonView.setEnabled(enable);
     }
 }

@@ -25,5 +25,12 @@ public class TerminalCommands {
     public static final String REBOOT = "sudo reboot";
     public static final String SHUTDOWN = "sudo poweroff";
     public static final String STAT_TEMP = "sudo vcgencmd measure_temp";
-    public static final String STAT_VOLATGE = "sudo vcgencmd measure_volts";
+    public static final String STAT_CPU = "sudo cat /proc/cpuinfo | tail -3";
+    public static final String CONNECT_WIFI = "sudo ./repo/BLE_Rpi_Peripheral/scripts/connect_wifi.sh %s %s";
+    public static final String FORGET_WIFI = "sudo ./repo/BLE_Rpi_Peripheral/scripts/remove_wifi.sh %s";
+    public static final String ENABLE_SSH = "sudo ./repo/BLE_Rpi_Peripheral/scripts/enable_ssh.sh";
+    public static final String DISABLE_SSH = "sudo ./repo/BLE_Rpi_Peripheral/scripts/disable_ssh.sh";
+    public static final String ENABLE_VNC = "sudo ./repo/BLE_Rpi_Peripheral/scripts/enable_vnc.sh";
+    public static final String DISABLE_VNC = "sudo ./repo/BLE_Rpi_Peripheral/scripts/disable_vnc.sh";
+
 }

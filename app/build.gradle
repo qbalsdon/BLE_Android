@@ -40,6 +40,7 @@ dependencies {
     compile 'com.android.support:design:25.3.1'
 
     compile 'com.github.vlad1m1r990:Lemniscate:1.2.0'
+    compile 'com.github.dimorinny:show-case-card-view:0.0.1'
     
     testCompile 'junit:junit:4.12'
 }

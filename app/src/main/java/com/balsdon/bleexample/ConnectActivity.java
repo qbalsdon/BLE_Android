@@ -11,11 +11,13 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
 import android.support.annotation.StringRes;
 import android.support.design.widget.BaseTransientBottomBar;
 import android.support.design.widget.Snackbar;
+import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
@@ -27,17 +29,23 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.LinearInterpolator;
+import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.balsdon.bleexample.linux.TerminalResponse;
 import com.balsdon.bleexample.linux.TerminalCommands;
+import com.balsdon.bleexample.linux.TerminalResponse;
 import com.balsdon.bleexample.ui.ActionButton;
 import com.balsdon.bleexample.ui.StatsDialog;
 import com.balsdon.bleexample.ui.WifiInfoDialog;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import ru.dimorinny.showcasecard.ShowCaseView;
+import ru.dimorinny.showcasecard.position.ViewPosition;
+import ru.dimorinny.showcasecard.radius.Radius;
 
 public class ConnectActivity extends AppCompatActivity implements BLEManager {
 
@@ -105,6 +113,15 @@ public class ConnectActivity extends AppCompatActivity implements BLEManager {
             actionbar.setLogo(R.drawable.raspberry_title);
             actionbar.setDisplayUseLogoEnabled(true);
         }
+
+        setupHelpView();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (blePeripheral.isConnected()) showAll();
+        else hideButtons();
     }
 
     @Override
@@ -171,19 +188,20 @@ public class ConnectActivity extends AppCompatActivity implements BLEManager {
     }
 
 
-    private void findActionButton(Action action, @IdRes int parentId, View.OnClickListener listener) {
+    private void findActionButton(Action action, @IdRes int parentId, @StringRes int helpTextReference, View.OnClickListener listener) {
         ActionButton button = (ActionButton) findViewById(parentId);
+        button.setImageHelpText(this, helpTextReference);
         button.setOnClickListener(listener);
         controls.put(action, button);
     }
 
     private void findControls() {
-        findActionButton(Action.WIFI, R.id.action_wifi, wifiListListener);
-        findActionButton(Action.IP, R.id.action_ip, ipListener);
-        findActionButton(Action.SSH, R.id.action_ssh, sshListener);
-        findActionButton(Action.VNC, R.id.action_vnc, vncListener);
-        findActionButton(Action.STATS, R.id.action_stats, statsListener);
-        findActionButton(Action.POWER, R.id.action_power, powerListener);
+        findActionButton(Action.WIFI, R.id.action_wifi, R.string.help_wifi, wifiListListener);
+        findActionButton(Action.IP, R.id.action_ip, R.string.help_ip, ipListener);
+        findActionButton(Action.SSH, R.id.action_ssh, R.string.help_ssh, sshListener);
+        findActionButton(Action.VNC, R.id.action_vnc, R.string.help_vnc, vncListener);
+        findActionButton(Action.STATS, R.id.action_stats, R.string.help_stats, statsListener);
+        findActionButton(Action.POWER, R.id.action_power, R.string.help_power, powerListener);
     }
 
     @Override
@@ -301,6 +319,10 @@ public class ConnectActivity extends AppCompatActivity implements BLEManager {
 
     @Override
     public void onConnected() {
+        showAll();
+    }
+
+    private void showAll() {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -411,14 +433,15 @@ public class ConnectActivity extends AppCompatActivity implements BLEManager {
                 break;
             }
             case IP:
-                showMessage(data.replace("\n", ""), android.R.string.copy, copyCommand);
+                showIp(data.replace("\n", "").trim());
                 break;
             case SSH: {
                 data = data.replace("\n", "");
                 TerminalResponse terminalResponse = TerminalResponse.getResponse(data);
                 switch (terminalResponse) {
                     case SSH_STARTED:
-                        data = data.replace("SSH started: ", "");
+                        data = data.replace("SSH started: ", "").trim();
+
                         showMessage(String.format(getString(R.string.success_ssh_message), data), R.string.connect, data, openSshCommand);
                         break;
                     case SSH_STOPPED:
@@ -529,6 +552,26 @@ public class ConnectActivity extends AppCompatActivity implements BLEManager {
         }
     };
 
+    private void showIp(final String ip) {
+        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
+        dialogBuilder.setTitle(R.string.dialog_ip_title);
+        dialogBuilder.setMessage(ip);
+        dialogBuilder.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+
+        dialogBuilder.setNeutralButton(android.R.string.copy, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                copyCommand.execute(ip);
+            }
+        });
+        dialogBuilder.create().show();
+    }
+
     private Command<String> copyCommand = new Command<String>() {
         @Override
         public void execute(String data) {
@@ -549,17 +592,47 @@ public class ConnectActivity extends AppCompatActivity implements BLEManager {
 
     private Command<String> openSshCommand = new Command<String>() {
         @Override
-        public void execute(String data) {
-            copyCommand.execute(data);
-            //TODO: open SSH app or go to store
+        public void execute(String ip) {
+            getSshUserName(ip);
         }
     };
+
+    private void openSsh(String user, String ip) {
+        ip = ip.trim();
+        Uri ssh = Uri.parse(String.format("ssh://%1$s/#%1$s", String.format("%s@%s", user, ip)));
+        Intent intent = new Intent(Intent.ACTION_VIEW, ssh);
+
+        String title = getResources().getString(R.string.ssh_chooser_title);
+
+        Intent chooser = Intent.createChooser(intent, title);
+        if (intent.resolveActivity(getPackageManager()) != null) {
+            startActivity(chooser);
+        } else {
+            showMessage(getString(R.string.error_no_ssh_client), R.string.open_app_store, new Command<String>() {
+                @Override
+                public void execute(String data) {
+                    startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=org.connectbot")));
+                }
+            });
+        }
+    }
 
     private Command<String> openVncCommand = new Command<String>() {
         @Override
         public void execute(String data) {
             copyCommand.execute(data);
-            //TODO: open VNC app or go to store
+            PackageManager pm = getPackageManager();
+            Intent launchIntent = pm.getLaunchIntentForPackage("com.realvnc.viewer.android");
+            if (launchIntent != null) {
+                startActivity(launchIntent);
+            } else {
+                showMessage(getString(R.string.error_no_vnc_client), R.string.open_app_store, new Command<String>() {
+                    @Override
+                    public void execute(String data) {
+                        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=com.realvnc.viewer.android")));
+                    }
+                });
+            }
         }
     };
 
@@ -580,5 +653,42 @@ public class ConnectActivity extends AppCompatActivity implements BLEManager {
 
         AlertDialog dialog = builder.create();
         dialog.show();
+    }
+
+    private void getSshUserName(final String ipAddress) {
+        TextInputLayout inputLayout = new TextInputLayout(this);
+        final EditText usernameText = new EditText(this);
+        usernameText.setHint(R.string.dialog_ssh_password_hint);
+        usernameText.setText(R.string.dialog_ssh_password_default);
+        inputLayout.addView(usernameText);
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setTitle(R.string.dialog_ssh_user_title)
+                .setView(inputLayout)
+                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        openSsh(usernameText.getText().toString(), ipAddress);
+                    }
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .create();
+        dialog.show();
+    }
+
+    private void setupHelpView() {
+        final ImageView imageView = (ImageView)findViewById(R.id.loading_help);
+        imageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new ShowCaseView.Builder(ConnectActivity.this)
+                        .withTypedPosition(new ViewPosition(imageView))
+                        .withTypedRadius(new Radius(186F))
+                        .withContent(
+                                getString(R.string.text_help)
+                        )
+                        .build()
+                        .show(ConnectActivity.this);
+            }
+        });
     }
 }

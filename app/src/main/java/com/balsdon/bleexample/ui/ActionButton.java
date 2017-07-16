@@ -1,5 +1,6 @@
 package com.balsdon.bleexample.ui;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.support.annotation.DrawableRes;
@@ -7,17 +8,17 @@ import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
 import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import com.balsdon.bleexample.R;
-import com.vlad1m1r.lemniscate.roulette.EpitrochoidProgressView;
 import com.vlad1m1r.lemniscate.roulette.HypotrochoidProgressView;
+
+import ru.dimorinny.showcasecard.ShowCaseView;
+import ru.dimorinny.showcasecard.position.ViewPosition;
+import ru.dimorinny.showcasecard.radius.Radius;
 
 /*************************************************************************
  *
@@ -79,6 +80,22 @@ public class ActionButton extends LinearLayout {
 
     public void setImage(@DrawableRes int reference) {
         imageView.setImageDrawable(ContextCompat.getDrawable(getContext(), reference));
+    }
+
+    public void setImageHelpText(final Activity activity, @StringRes final int helpTextRes) {
+        imageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new ShowCaseView.Builder(activity)
+                        .withTypedPosition(new ViewPosition(imageView))
+                        .withTypedRadius(new Radius(186F))
+                        .withContent(
+                                getContext().getString(helpTextRes)
+                        )
+                        .build()
+                        .show(activity);
+            }
+        });
     }
 
     public void setOnClickListener(View.OnClickListener listener) {

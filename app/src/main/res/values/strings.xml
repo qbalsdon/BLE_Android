@@ -52,4 +52,20 @@
     <string name="dialog_temperature_description">The recommended temperature is between 0°C and 70°C</string>
     <string name="dialog_temperature_unit">ºc</string>
     <string name="dialog_cpu_info_description">This is some basic information on your Raspberry Pi</string>
+    <string name="ssh_chooser_title">Choose SSH client</string>
+    <string name="error_no_ssh_client">No SSH client found</string>
+    <string name="error_no_vnc_client">No VNC client found</string>
+    <string name="open_app_store">App store</string>
+    <string name="vnc_chooser_title">VNC Client</string>
+    <string name="text_help">This app is to be used in conjunction with a specific disk image of Raspberry Pi. This is to allow the app to access the Pi via Bluetooth Low Energy (BLE).</string>
+    <string name="help_wifi">The Raspberry Pi will look for available Wifi networks and allow you to log into them</string>
+    <string name="help_ip">Allows you to see and copy the IP address so that you can access the Raspberry Pi from other computers</string>
+    <string name="help_ssh">Using an SSH client, you can access your Raspberry Pi\'s command line, also known as terminal</string>
+    <string name="help_vnc">You can access the Raspberry Pi using a remote desktop connection known as VNC</string>
+    <string name="help_stats">Get some general statistics of the Raspberry Pi</string>
+    <string name="help_power">Reboot or turn off the Raspberry Pi</string>
+    <string name="dialog_ip_title">Raspberry Pi IP Address</string>
+    <string name="dialog_ssh_user_title">SSH Username</string>
+    <string name="dialog_ssh_password_hint">Username</string>
+    <string name="dialog_ssh_password_default">pi</string>
 </resources>

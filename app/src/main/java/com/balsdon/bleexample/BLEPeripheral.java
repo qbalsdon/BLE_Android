@@ -30,6 +30,12 @@ public class BLEPeripheral {
     private BluetoothGattService bluetoothGattService = null;
     private HashMap<String, Command<String>> subscriptions;
 
+    private boolean connected = false;
+
+    public boolean isConnected() {
+        return connected;
+    }
+
     public BLEPeripheral(BLEManager connector, String deviceId) {
         this.connector = connector;
         this.deviceId = deviceId;
@@ -49,6 +55,7 @@ public class BLEPeripheral {
     }
 
     public void scanForDevice() {
+        connected = false;
         connector.log("BT ENABLED: SCANNING FOR DEVICES");
         connector.reportState(BleManagerStatus.SEARCH_START);
         bluetoothLeScanner = bluetoothAdapter.getBluetoothLeScanner();
@@ -188,6 +195,7 @@ public class BLEPeripheral {
             connector.log("Characteristic does not exist");
             return;
         }
+        connected = true;
         connector.reportState(BleManagerStatus.CHARACTERISTIC_SUBSCRIBED);
         bluetoothGatt.setCharacteristicNotification(characteristic, true);
         BluetoothGattDescriptor descriptor = characteristic.getDescriptor(UUID.fromString("00002902-0000-1000-8000-00805f9b34fb"));

@@ -35,7 +35,7 @@ import com.balsdon.bleexample.R;
 public class StatsDialog {
 
     public enum Type {
-        CPU_INFO(R.string.dialog_version_title, R.string.dialog_cpu_info_description, R.drawable.raspberry_pi_logo),
+        CPU_INFO(R.string.dialog_version_title, R.string.dialog_cpu_info_description, R.drawable.blueberry),
         TEMPERATURE(R.string.dialog_temperature_title, R.string.dialog_temperature_description, R.string.dialog_temperature_unit, R.drawable.thermometer);
 
         public @StringRes int titleRes;

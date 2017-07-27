@@ -81,7 +81,7 @@ public class SearchImageView extends android.support.v7.widget.AppCompatImageVie
             public void run() {
                 original = ((BitmapDrawable) getDrawable()).getBitmap();
 
-                scaledImage = Bitmap.createScaledBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.raspberry_loading_colour), (int) (original.getWidth() * zoomScale), (int) (original.getHeight() * zoomScale), false);
+                scaledImage = Bitmap.createScaledBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.blueberry_loading_colour), (int) (original.getWidth() * zoomScale), (int) (original.getHeight() * zoomScale), false);
 
                 center = new PointF(getWidth() / 2.0f, getHeight() / 2.0f);
                 zoomPos = new PointF(center.x, center.y);
@@ -106,7 +106,7 @@ public class SearchImageView extends android.support.v7.widget.AppCompatImageVie
                 viewX = centerX - (original.getWidth() / 2);
                 viewY = centerY - (original.getHeight() / 2);
 
-                radius = Math.min(original.getWidth() / 2, getHeight() / 2) - ((sizeOfMagnifier / 2.0f) + 10);
+                radius = Math.min(original.getWidth() / 2, getHeight() / 2) - ((sizeOfMagnifier / 2.0f) + 15);
                 currentPoint = new PointF(viewX + (sizeOfMagnifier / 2.0f), centerY);
 
                 start();

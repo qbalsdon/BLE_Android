@@ -11,6 +11,8 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.LocationManager;
+import android.location.LocationProvider;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
@@ -110,16 +112,56 @@ public class ConnectActivity extends AppCompatActivity implements BLEManager {
         ActionBar actionbar = getSupportActionBar();
         if (actionbar != null) {
             actionbar.setDisplayShowHomeEnabled(true);
-            actionbar.setLogo(R.drawable.raspberry_title);
+            actionbar.setLogo(R.drawable.blueberry);
             actionbar.setDisplayUseLogoEnabled(true);
         }
 
         setupHelpView();
     }
 
+    private void checkRequirements() {
+        checkLocationEnabled();
+    }
+
+    private void checkLocationEnabled() {
+        LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        boolean gps_enabled = false;
+        boolean network_enabled = false;
+
+        try {
+            gps_enabled = lm.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        } catch (Exception ex) {
+        }
+
+        try {
+            network_enabled = lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+        } catch (Exception ex) {
+        }
+
+        if (!gps_enabled && !network_enabled) {
+            AlertDialog.Builder dialog = new AlertDialog.Builder(this);
+            dialog.setTitle(R.string.gps_network_not_enabled);
+            dialog.setMessage(R.string.open_location_settings);
+            dialog.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface paramDialogInterface, int paramInt) {
+                    startActivity(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+                }
+            });
+            dialog.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface paramDialogInterface, int paramInt) {
+                    finish();
+                }
+            });
+            dialog.show();
+        }
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
+        checkRequirements();
         if (blePeripheral.isConnected()) showAll();
         else hideButtons();
     }
@@ -377,7 +419,7 @@ public class ConnectActivity extends AppCompatActivity implements BLEManager {
         switch (requestCode) {
             case MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION: {
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    blePeripheral.scanForDevice();
+                    blePeripheral = new BLEPeripheral(this, DEVICE_ID);
                 } else {
                     log("Permission denied. App is a brick");
                 }
@@ -472,7 +514,7 @@ public class ConnectActivity extends AppCompatActivity implements BLEManager {
             }
             case STATS: {
                 if (data.toLowerCase().contains("temp")) {
-                    StatsDialog.create(this, StatsDialog.Type.TEMPERATURE, String.format("%.2f", Float.parseFloat(data.replaceAll("[^0-9?!\\.]","")))).show();
+                    StatsDialog.create(this, StatsDialog.Type.TEMPERATURE, String.format("%.2f", Float.parseFloat(data.replaceAll("[^0-9?!\\.]", "")))).show();
                 } else {
                     StatsDialog.create(this, StatsDialog.Type.CPU_INFO, data).show();
                 }
@@ -676,7 +718,7 @@ public class ConnectActivity extends AppCompatActivity implements BLEManager {
     }
 
     private void setupHelpView() {
-        final ImageView imageView = (ImageView)findViewById(R.id.loading_help);
+        final ImageView imageView = (ImageView) findViewById(R.id.loading_help);
         imageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

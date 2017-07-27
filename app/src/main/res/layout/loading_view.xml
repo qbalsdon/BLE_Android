@@ -19,7 +19,7 @@
         android:padding="40dp"
         android:scaleType="center"
         android:layout_centerInParent="true"
-        android:src="@drawable/raspberry_loading_grey"/>
+        android:src="@drawable/blueberry_loading_grey"/>
 
     <TextView
         android:id="@+id/loading_text"

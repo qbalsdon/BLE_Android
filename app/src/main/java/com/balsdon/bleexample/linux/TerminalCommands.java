@@ -20,7 +20,8 @@ package com.balsdon.bleexample.linux;
  */
 
 public class TerminalCommands {
-    public static final String GET_IP = "hostname -I";
+    public static final String EMPTY = "---";
+    public static final String GET_IP = String.format("echo \"$(hostname -I)\"%s",EMPTY);
     public static final String LIST_WIFI = "sudo iw dev wlan0 scan | grep SSID";
     public static final String REBOOT = "sudo reboot";
     public static final String SHUTDOWN = "sudo poweroff";

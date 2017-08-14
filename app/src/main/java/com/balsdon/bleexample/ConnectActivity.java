@@ -12,7 +12,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
-import android.location.LocationProvider;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
@@ -49,7 +48,7 @@ import ru.dimorinny.showcasecard.ShowCaseView;
 import ru.dimorinny.showcasecard.position.ViewPosition;
 import ru.dimorinny.showcasecard.radius.Radius;
 
-public class ConnectActivity extends AppCompatActivity implements BLEManager {
+public class ConnectActivity extends AppCompatActivity implements BLEManager, View.OnClickListener {
 
     //TODO: THANKS: http://raspberrycan.blogspot.co.uk/
 
@@ -69,7 +68,8 @@ public class ConnectActivity extends AppCompatActivity implements BLEManager {
     private static final int STATS_CPU = 10;
 
     private static final String DEVICE_ID = "4afb720a-5214-4337-841b-d5f954214877";
-    private static final String CHARACTERISTIC_ID = "8bacc104-15eb-4b37-bea6-0df3ac364199";
+    private static final String TERMINAL_CHARACTERISTIC = "8bacc104-15eb-4b37-bea6-0df3ac364199";
+    private static final String MOTOR_CHARACTERISTIC = "d23157c4-8416-44ff-b41d-a548c2d28653";
 
     private enum CurrentHandleStateEnum {
         NONE, WIFI_LIST, WIFI_CONNECT, IP, SSH, VNC, STATS, POWER
@@ -117,6 +117,12 @@ public class ConnectActivity extends AppCompatActivity implements BLEManager {
         }
 
         setupHelpView();
+
+        findViewById(R.id.fwd).setOnClickListener(this);
+        findViewById(R.id.back).setOnClickListener(this);
+        findViewById(R.id.right).setOnClickListener(this);
+        findViewById(R.id.left).setOnClickListener(this);
+        findViewById(R.id.stop).setOnClickListener(this);
     }
 
     private void checkRequirements() {
@@ -199,11 +205,11 @@ public class ConnectActivity extends AppCompatActivity implements BLEManager {
         switch (item.getItemId()) {
             case POWER_OFF:
                 state = CurrentHandleStateEnum.POWER;
-                blePeripheral.writeCharacteristic(CHARACTERISTIC_ID, TerminalCommands.SHUTDOWN);
+                blePeripheral.writeCharacteristic(TERMINAL_CHARACTERISTIC, TerminalCommands.SHUTDOWN);
                 break;
             case POWER_RESTART:
                 state = CurrentHandleStateEnum.POWER;
-                blePeripheral.writeCharacteristic(CHARACTERISTIC_ID, TerminalCommands.REBOOT);
+                blePeripheral.writeCharacteristic(TERMINAL_CHARACTERISTIC, TerminalCommands.REBOOT);
                 break;
             case SSH_OPEN_APP:
             case SSH_ENABLE:
@@ -371,7 +377,7 @@ public class ConnectActivity extends AppCompatActivity implements BLEManager {
                 showButtons();
             }
         });
-        blePeripheral.subscribe(CHARACTERISTIC_ID, valueChanged);
+        blePeripheral.subscribe(TERMINAL_CHARACTERISTIC, valueChanged);
     }
 
     private Command<String> valueChanged = new Command<String>() {
@@ -549,7 +555,7 @@ public class ConnectActivity extends AppCompatActivity implements BLEManager {
     private void runCommand(Action action, CurrentHandleStateEnum state, String terminalCommand) {
         disableAndAnimate(action);
         this.state = state;
-        blePeripheral.writeCharacteristic(CHARACTERISTIC_ID, terminalCommand);
+        blePeripheral.writeCharacteristic(TERMINAL_CHARACTERISTIC, terminalCommand);
     }
 
     private View.OnClickListener wifiListListener = new View.OnClickListener() {
@@ -647,7 +653,7 @@ public class ConnectActivity extends AppCompatActivity implements BLEManager {
         @Override
         public void execute(String data) {
             state = CurrentHandleStateEnum.WIFI_CONNECT;
-            blePeripheral.writeCharacteristic(CHARACTERISTIC_ID, data);
+            blePeripheral.writeCharacteristic(TERMINAL_CHARACTERISTIC, data);
         }
     };
 
@@ -751,5 +757,26 @@ public class ConnectActivity extends AppCompatActivity implements BLEManager {
                         .show(ConnectActivity.this);
             }
         });
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.fwd :
+                blePeripheral.writeCharacteristic(MOTOR_CHARACTERISTIC, "FWD 80");
+                break;
+            case R.id.back :
+                blePeripheral.writeCharacteristic(MOTOR_CHARACTERISTIC, "BCK 80");
+                break;
+            case R.id.left :
+                blePeripheral.writeCharacteristic(MOTOR_CHARACTERISTIC, "LEFT 80");
+                break;
+            case R.id.right :
+                blePeripheral.writeCharacteristic(MOTOR_CHARACTERISTIC, "RIGHT 80");
+                break;
+            case R.id.stop :
+                blePeripheral.writeCharacteristic(MOTOR_CHARACTERISTIC, "STOP 80");
+                break;
+        }
     }
 }

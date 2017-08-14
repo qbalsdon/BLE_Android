@@ -13,7 +13,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
-import com.balsdon.bleexample.R;
+import com.balsdon.tank.R;
 import com.vlad1m1r.lemniscate.roulette.HypotrochoidProgressView;
 
 import ru.dimorinny.showcasecard.ShowCaseView;

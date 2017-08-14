@@ -12,10 +12,10 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
-import android.location.LocationProvider;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
+import android.support.annotation.LayoutRes;
 import android.support.annotation.StringRes;
 import android.support.design.widget.BaseTransientBottomBar;
 import android.support.design.widget.Snackbar;
@@ -29,6 +29,7 @@ import android.text.method.ScrollingMovementMethod;
 import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.LinearInterpolator;
 import android.widget.EditText;
@@ -41,6 +42,8 @@ import com.balsdon.bleexample.linux.TerminalResponse;
 import com.balsdon.bleexample.ui.ActionButton;
 import com.balsdon.bleexample.ui.StatsDialog;
 import com.balsdon.bleexample.ui.WifiInfoDialog;
+import com.balsdon.tank.BuildConfig;
+import com.balsdon.tank.R;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -49,7 +52,7 @@ import ru.dimorinny.showcasecard.ShowCaseView;
 import ru.dimorinny.showcasecard.position.ViewPosition;
 import ru.dimorinny.showcasecard.radius.Radius;
 
-public class ConnectActivity extends AppCompatActivity implements BLEManager {
+public class ConnectActivity extends AppCompatActivity implements BLEManager, View.OnTouchListener {
 
     //TODO: THANKS: http://raspberrycan.blogspot.co.uk/
 
@@ -69,7 +72,8 @@ public class ConnectActivity extends AppCompatActivity implements BLEManager {
     private static final int STATS_CPU = 10;
 
     private static final String DEVICE_ID = "4afb720a-5214-4337-841b-d5f954214877";
-    private static final String CHARACTERISTIC_ID = "8bacc104-15eb-4b37-bea6-0df3ac364199";
+    private static final String TERMINAL_CHARACTERISTIC = "8bacc104-15eb-4b37-bea6-0df3ac364199";
+    private static final String MOTOR_CHARACTERISTIC = "d23157c4-8416-44ff-b41d-a548c2d28653";
 
     private enum CurrentHandleStateEnum {
         NONE, WIFI_LIST, WIFI_CONNECT, IP, SSH, VNC, STATS, POWER
@@ -112,9 +116,28 @@ public class ConnectActivity extends AppCompatActivity implements BLEManager {
         ActionBar actionbar = getSupportActionBar();
         if (actionbar != null) {
             actionbar.setDisplayShowHomeEnabled(true);
-            actionbar.setLogo(R.drawable.blueberry);
+            actionbar.setLogo(R.drawable.tank);
             actionbar.setDisplayUseLogoEnabled(true);
         }
+
+        findViewById(R.id.forward).setOnTouchListener(this);
+        findViewById(R.id.back).setOnTouchListener(this);
+        findViewById(R.id.left).setOnTouchListener(this);
+        findViewById(R.id.right).setOnTouchListener(this);
+
+        findViewById(R.id.view_settings).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                transition(R.id.controls, R.id.settings);
+            }
+        });
+
+        findViewById(R.id.view_controls).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                transition(R.id.settings, R.id.controls);
+            }
+        });
 
         setupHelpView();
     }
@@ -199,11 +222,11 @@ public class ConnectActivity extends AppCompatActivity implements BLEManager {
         switch (item.getItemId()) {
             case POWER_OFF:
                 state = CurrentHandleStateEnum.POWER;
-                blePeripheral.writeCharacteristic(CHARACTERISTIC_ID, TerminalCommands.SHUTDOWN);
+                blePeripheral.writeCharacteristic(TERMINAL_CHARACTERISTIC, TerminalCommands.SHUTDOWN);
                 break;
             case POWER_RESTART:
                 state = CurrentHandleStateEnum.POWER;
-                blePeripheral.writeCharacteristic(CHARACTERISTIC_ID, TerminalCommands.REBOOT);
+                blePeripheral.writeCharacteristic(TERMINAL_CHARACTERISTIC, TerminalCommands.REBOOT);
                 break;
             case SSH_OPEN_APP:
             case SSH_ENABLE:
@@ -371,7 +394,7 @@ public class ConnectActivity extends AppCompatActivity implements BLEManager {
                 showButtons();
             }
         });
-        blePeripheral.subscribe(CHARACTERISTIC_ID, valueChanged);
+        blePeripheral.subscribe(TERMINAL_CHARACTERISTIC, valueChanged);
     }
 
     private Command<String> valueChanged = new Command<String>() {
@@ -544,7 +567,7 @@ public class ConnectActivity extends AppCompatActivity implements BLEManager {
     private void runCommand(Action action, CurrentHandleStateEnum state, String terminalCommand) {
         disableAndAnimate(action);
         this.state = state;
-        blePeripheral.writeCharacteristic(CHARACTERISTIC_ID, terminalCommand);
+        blePeripheral.writeCharacteristic(TERMINAL_CHARACTERISTIC, terminalCommand);
     }
 
     private View.OnClickListener wifiListListener = new View.OnClickListener() {
@@ -628,7 +651,7 @@ public class ConnectActivity extends AppCompatActivity implements BLEManager {
         @Override
         public void execute(String data) {
             state = CurrentHandleStateEnum.WIFI_CONNECT;
-            blePeripheral.writeCharacteristic(CHARACTERISTIC_ID, data);
+            blePeripheral.writeCharacteristic(TERMINAL_CHARACTERISTIC, data);
         }
     };
 
@@ -732,5 +755,81 @@ public class ConnectActivity extends AppCompatActivity implements BLEManager {
                         .show(ConnectActivity.this);
             }
         });
+    }
+
+    public void moveInstruction(@IdRes int id) {
+        switch (id) {
+            case R.id.forward:
+                blePeripheral.writeCharacteristic(MOTOR_CHARACTERISTIC, "F 255");
+                break;
+            case R.id.back:
+                blePeripheral.writeCharacteristic(MOTOR_CHARACTERISTIC, "B 255");
+                break;
+            case R.id.left:
+                blePeripheral.writeCharacteristic(MOTOR_CHARACTERISTIC, "L 255");
+                break;
+            case R.id.right:
+                blePeripheral.writeCharacteristic(MOTOR_CHARACTERISTIC, "R 255");
+                break;
+        }
+    }
+
+    @Override
+    public boolean onTouch(View v, MotionEvent event) {
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+                moveInstruction(v.getId());
+            break;
+            case MotionEvent.ACTION_UP :
+                blePeripheral.writeCharacteristic(MOTOR_CHARACTERISTIC, "S");
+            break;
+        }
+        return false;
+    }
+
+    private void transition(@IdRes int current, @IdRes int future) {
+        final View viewToShow = findViewById(future);
+        final View viewToHide = findViewById(current);
+
+        viewToShow.setX(viewToHide.getWidth());
+        viewToShow.setVisibility(View.VISIBLE);
+        ValueAnimator animator = ObjectAnimator.ofInt(viewToHide.getWidth(), 0);
+
+        animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                int value = (int) animation.getAnimatedValue();
+
+                viewToHide.setX(viewToHide.getWidth() - value);
+
+                viewToShow.setX(value);
+            }
+        });
+
+        animator.addListener(new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animation) {
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                viewToHide.setVisibility(View.GONE);
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animation) {
+
+            }
+
+            @Override
+            public void onAnimationRepeat(Animator animation) {
+
+            }
+        });
+
+        animator.setInterpolator(new LinearInterpolator());
+        animator.setDuration(1000);
+        animator.start();
     }
 }

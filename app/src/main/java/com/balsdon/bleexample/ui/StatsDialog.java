@@ -11,7 +11,8 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.balsdon.bleexample.R;
+import com.balsdon.tank.R;
+
 
 /*************************************************************************
  *

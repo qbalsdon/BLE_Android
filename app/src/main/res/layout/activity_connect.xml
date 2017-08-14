@@ -7,96 +7,174 @@
     android:layout_height="match_parent"
     android:background="@drawable/background"
     tools:context="com.balsdon.bleexample.ConnectActivity">
-    <LinearLayout
-        android:id="@+id/top"
+
+    <RelativeLayout
+        android:id="@+id/controls"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/mid"
-        android:layout_alignParentTop="true">
+        android:layout_height="match_parent">
+
+        <ImageView
+            android:id="@+id/view_settings"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_marginRight="10dp"
+            android:layout_marginTop="10dp"
+            android:src="@drawable/blueberry" />
+
+        <View
+            android:id="@+id/center"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_centerInParent="true" />
+
+        <ImageButton
+            android:id="@+id/forward"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_above="@+id/center"
+            android:layout_alignLeft="@+id/center"
+            android:background="@android:color/transparent"
+            android:src="@drawable/arrow_up" />
+
+        <ImageButton
+            android:id="@+id/back"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_alignLeft="@+id/center"
+            android:layout_below="@+id/center"
+            android:background="@android:color/transparent"
+            android:rotation="180"
+            android:src="@drawable/arrow_up" />
+
+        <ImageButton
+            android:id="@+id/left"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_alignTop="@+id/center"
+            android:layout_toLeftOf="@+id/center"
+            android:background="@android:color/transparent"
+            android:rotation="270"
+            android:src="@drawable/arrow_up" />
+
+        <ImageButton
+            android:id="@+id/right"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_alignTop="@+id/center"
+            android:layout_toRightOf="@+id/center"
+            android:background="@android:color/transparent"
+            android:rotation="90"
+            android:src="@drawable/arrow_up" />
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/settings"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone">
+
+        <ImageView
+            android:id="@+id/view_controls"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_marginLeft="10dp"
+            android:layout_marginTop="10dp"
+            android:src="@drawable/tank" />
 
         <LinearLayout
+            android:id="@+id/top"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical">
+            android:layout_above="@+id/mid"
+            android:layout_alignParentTop="true">
 
-            <com.balsdon.bleexample.ui.ActionButton
-                android:id="@+id/action_wifi"
-                android:layout_width="0dp"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                app:displayText="@string/action_wifi"
-                app:imageSrc="@drawable/ic_wifi"/>
+                android:layout_gravity="center_vertical">
 
-            <com.balsdon.bleexample.ui.ActionButton
-                android:id="@+id/action_ip"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                app:displayText="@string/action_ip"
-                app:imageSrc="@drawable/ic_ip" />
+                <com.balsdon.bleexample.ui.ActionButton
+                    android:id="@+id/action_wifi"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    app:displayText="@string/action_wifi"
+                    app:imageSrc="@drawable/ic_wifi" />
+
+                <com.balsdon.bleexample.ui.ActionButton
+                    android:id="@+id/action_ip"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    app:displayText="@string/action_ip"
+                    app:imageSrc="@drawable/ic_ip" />
+            </LinearLayout>
         </LinearLayout>
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/mid"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:orientation="horizontal">
-
-        <com.balsdon.bleexample.ui.ActionButton
-            android:id="@+id/action_ssh"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            app:displayText="@string/action_ssh"
-            app:imageSrc="@drawable/ic_ssh" />
-
-        <com.balsdon.bleexample.ui.ActionButton
-            android:id="@+id/action_vnc"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            app:displayText="@string/action_vnc"
-            app:imageSrc="@drawable/ic_vnc" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/bot"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/mid"
-        android:layout_alignParentBottom="true"
-        android:orientation="horizontal">
 
         <LinearLayout
+            android:id="@+id/mid"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical">
+            android:layout_centerInParent="true"
+            android:orientation="horizontal">
 
             <com.balsdon.bleexample.ui.ActionButton
-                android:id="@+id/action_stats"
+                android:id="@+id/action_ssh"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                app:displayText="@string/action_stats"
-                app:imageSrc="@drawable/ic_stats" />
+                app:displayText="@string/action_ssh"
+                app:imageSrc="@drawable/ic_ssh" />
 
             <com.balsdon.bleexample.ui.ActionButton
-                android:id="@+id/action_power"
+                android:id="@+id/action_vnc"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                app:displayText="@string/action_power"
-                app:imageSrc="@drawable/ic_power" />
+                app:displayText="@string/action_vnc"
+                app:imageSrc="@drawable/ic_vnc" />
         </LinearLayout>
-    </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/bot"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_below="@+id/mid"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical">
+
+                <com.balsdon.bleexample.ui.ActionButton
+                    android:id="@+id/action_stats"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    app:displayText="@string/action_stats"
+                    app:imageSrc="@drawable/ic_stats" />
+
+                <com.balsdon.bleexample.ui.ActionButton
+                    android:id="@+id/action_power"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    app:displayText="@string/action_power"
+                    app:imageSrc="@drawable/ic_power" />
+            </LinearLayout>
+        </LinearLayout>
+    </RelativeLayout>
 
     <include
-        tools:visibility="gone"
         android:id="@+id/loading_view"
-        android:layout_height="match_parent"
+        layout="@layout/loading_view"
         android:layout_width="match_parent"
-        layout="@layout/loading_view" />
+        android:layout_height="match_parent"
+        tools:visibility="gone" />
 
 </RelativeLayout>

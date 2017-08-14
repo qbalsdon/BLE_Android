@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Blueberry Pi</string>
+    <string name="app_name">Lee\'s Tank</string>
     <string name="ble_not_supported">BLE is not supported</string>
     <string name="action_wifi">Wifi</string>
     <string name="empty">Nothing defined</string>

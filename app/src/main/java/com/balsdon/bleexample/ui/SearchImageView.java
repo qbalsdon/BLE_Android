@@ -17,7 +17,7 @@ import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
 import android.view.animation.LinearInterpolator;
 
-import com.balsdon.bleexample.R;
+import com.balsdon.tank.R;
 
 /*************************************************************************
  *
@@ -106,7 +106,7 @@ public class SearchImageView extends android.support.v7.widget.AppCompatImageVie
                 viewX = centerX - (original.getWidth() / 2);
                 viewY = centerY - (original.getHeight() / 2);
 
-                radius = Math.min(original.getWidth() / 2, getHeight() / 2) - ((sizeOfMagnifier / 2.0f) + 15);
+                radius = Math.min(original.getWidth() / 2, getHeight() / 2) - ((sizeOfMagnifier / 2.0f) + 25);
                 currentPoint = new PointF(viewX + (sizeOfMagnifier / 2.0f), centerY);
 
                 start();

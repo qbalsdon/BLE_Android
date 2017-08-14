@@ -70,4 +70,6 @@
     <string name="dialog_ssh_password_default">pi</string>
     <string name="gps_network_not_enabled">Location not enabled</string>
     <string name="open_location_settings">In order for Bluetooth LE to work, Android requires location services be enabled.</string>
+    <string name="dialog_ip_none_title">No I.P. Address Found</string>
+    <string name="dialog_ip_none_message">Try connecting to a Wifi first</string>
 </resources>

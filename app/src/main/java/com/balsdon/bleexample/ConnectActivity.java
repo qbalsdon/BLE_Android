@@ -53,7 +53,6 @@ import ru.dimorinny.showcasecard.position.ViewPosition;
 import ru.dimorinny.showcasecard.radius.Radius;
 
 public class ConnectActivity extends AppCompatActivity implements BLEManager, View.OnTouchListener {
-
     //TODO: THANKS: http://raspberrycan.blogspot.co.uk/
 
     private static final String TAG = "ConnectActivity";
@@ -140,6 +139,11 @@ public class ConnectActivity extends AppCompatActivity implements BLEManager, Vi
         });
 
         setupHelpView();
+
+        findViewById(R.id.forward).setOnTouchListener(this);
+        findViewById(R.id.back).setOnTouchListener(this);
+        findViewById(R.id.right).setOnTouchListener(this);
+        findViewById(R.id.left).setOnTouchListener(this);
     }
 
     private void checkRequirements() {
@@ -498,6 +502,11 @@ public class ConnectActivity extends AppCompatActivity implements BLEManager, Vi
                 break;
             }
             case IP:
+                data = data.replace(TerminalCommands.EMPTY, "");
+                if (data.trim().length() == 0) {
+                    showNoIp();
+                    return;
+                }
                 showIp(data.replace("\n", "").trim());
                 break;
             case SSH: {
@@ -616,6 +625,20 @@ public class ConnectActivity extends AppCompatActivity implements BLEManager, Vi
             openContextMenu(controls.get(Action.POWER));
         }
     };
+
+    private void showNoIp() {
+        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
+        dialogBuilder.setTitle(R.string.dialog_ip_none_title);
+        dialogBuilder.setMessage(R.string.dialog_ip_none_message);
+        dialogBuilder.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+
+        dialogBuilder.create().show();
+    }
 
     private void showIp(final String ip) {
         AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);

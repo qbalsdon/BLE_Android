@@ -106,7 +106,7 @@ public class SearchImageView extends android.support.v7.widget.AppCompatImageVie
                 viewX = centerX - (original.getWidth() / 2);
                 viewY = centerY - (original.getHeight() / 2);
 
-                radius = Math.min(original.getWidth() / 2, getHeight() / 2) - ((sizeOfMagnifier / 2.0f) + 25);
+                radius = Math.min(original.getWidth() / 2, getHeight() / 2) - 150;
                 currentPoint = new PointF(viewX + (sizeOfMagnifier / 2.0f), centerY);
 
                 start();

@@ -15,7 +15,6 @@ import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
-import android.support.annotation.LayoutRes;
 import android.support.annotation.StringRes;
 import android.support.design.widget.BaseTransientBottomBar;
 import android.support.design.widget.Snackbar;
@@ -44,6 +43,7 @@ import com.balsdon.bleexample.ui.StatsDialog;
 import com.balsdon.bleexample.ui.WifiInfoDialog;
 import com.balsdon.tank.BuildConfig;
 import com.balsdon.tank.R;
+import com.xw.repo.BubbleSeekBar;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -73,6 +73,8 @@ public class ConnectActivity extends AppCompatActivity implements BLEManager, Vi
     private static final String DEVICE_ID = "4afb720a-5214-4337-841b-d5f954214877";
     private static final String TERMINAL_CHARACTERISTIC = "8bacc104-15eb-4b37-bea6-0df3ac364199";
     private static final String MOTOR_CHARACTERISTIC = "d23157c4-8416-44ff-b41d-a548c2d28653";
+
+    private static final int TURRET_SPEED = 85;
 
     private enum CurrentHandleStateEnum {
         NONE, WIFI_LIST, WIFI_CONNECT, IP, SSH, VNC, STATS, POWER
@@ -123,6 +125,8 @@ public class ConnectActivity extends AppCompatActivity implements BLEManager, Vi
         findViewById(R.id.back).setOnTouchListener(this);
         findViewById(R.id.left).setOnTouchListener(this);
         findViewById(R.id.right).setOnTouchListener(this);
+        findViewById(R.id.rotateAntiClockwise).setOnTouchListener(this);
+        findViewById(R.id.rotateClockwise).setOnTouchListener(this);
 
         findViewById(R.id.view_settings).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -781,19 +785,25 @@ public class ConnectActivity extends AppCompatActivity implements BLEManager, Vi
     }
 
     public void moveInstruction(@IdRes int id) {
+        int speed = ((BubbleSeekBar)findViewById(R.id.speed)).getProgress();
         switch (id) {
             case R.id.forward:
-                blePeripheral.writeCharacteristic(MOTOR_CHARACTERISTIC, "F 255");
+                blePeripheral.writeCharacteristic(MOTOR_CHARACTERISTIC, String.format("F %s", speed));
                 break;
             case R.id.back:
-                blePeripheral.writeCharacteristic(MOTOR_CHARACTERISTIC, "B 255");
+                blePeripheral.writeCharacteristic(MOTOR_CHARACTERISTIC, String.format("B %s", speed));
                 break;
             case R.id.left:
-                blePeripheral.writeCharacteristic(MOTOR_CHARACTERISTIC, "L 255");
+                blePeripheral.writeCharacteristic(MOTOR_CHARACTERISTIC, String.format("L %s", speed));
                 break;
             case R.id.right:
-                blePeripheral.writeCharacteristic(MOTOR_CHARACTERISTIC, "R 255");
+                blePeripheral.writeCharacteristic(MOTOR_CHARACTERISTIC, String.format("R %s", speed));
                 break;
+            case R.id.rotateAntiClockwise:
+                blePeripheral.writeCharacteristic(MOTOR_CHARACTERISTIC, String.format("A %s", TURRET_SPEED));
+                break;
+            case R.id.rotateClockwise:
+                blePeripheral.writeCharacteristic(MOTOR_CHARACTERISTIC, String.format("C %s", TURRET_SPEED));
         }
     }
 

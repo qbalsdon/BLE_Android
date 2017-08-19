@@ -41,6 +41,8 @@ dependencies {
 
     compile 'com.github.vlad1m1r990:Lemniscate:1.2.0'
     compile 'com.github.dimorinny:show-case-card-view:0.0.1'
+
+    compile 'com.xw.repo:bubbleseekbar:3.5-lite'
     
     testCompile 'junit:junit:4.12'
 }

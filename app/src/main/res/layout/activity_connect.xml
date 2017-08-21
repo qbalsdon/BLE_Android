@@ -53,6 +53,15 @@
             android:layout_centerInParent="true" />
 
         <ImageButton
+            android:id="@+id/pew"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_marginRight="40dp"
+            android:layout_below="@id/speed"
+            android:src="@drawable/target"
+            android:layout_toLeftOf="@+id/forward"/>
+
+        <ImageButton
             android:id="@+id/forward"
             android:layout_width="80dp"
             android:layout_height="80dp"

@@ -8,12 +8,12 @@
     <string name="action_vnc">VNC</string>
     <string name="action_stats">Stats</string>
     <string name="action_power">Power</string>
-    <string name="status_start">Searching for Blueberry Pi</string>
-    <string name="status_found">Pi Located! Connecting</string>
-    <string name="status_disconnected">Disconnected from Pi!</string>
+    <string name="status_start">Searching for Lee\'s Tank</string>
+    <string name="status_found">Tank Located! Connecting</string>
+    <string name="status_disconnected">Disconnected from Tank!</string>
     <string name="status_cancel_search">Search cancelled</string>
-    <string name="status_connected">Connected to Pi</string>
-    <string name="status_subscribed">Subscribed to Pi</string>
+    <string name="status_connected">Connected to Tank</string>
+    <string name="status_subscribed">Subscribed to Tank</string>
     <string name="copy_toast">\'%s\' copied to clipboard</string>
     <string name="title_wifi_list">Detected Wifi:</string>
     <string name="menu_power_title">Power Options</string>

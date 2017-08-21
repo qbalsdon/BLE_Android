@@ -11,7 +11,9 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.AssetFileDescriptor;
 import android.location.LocationManager;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
@@ -45,6 +47,7 @@ import com.balsdon.tank.BuildConfig;
 import com.balsdon.tank.R;
 import com.xw.repo.BubbleSeekBar;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -74,7 +77,7 @@ public class ConnectActivity extends AppCompatActivity implements BLEManager, Vi
     private static final String TERMINAL_CHARACTERISTIC = "8bacc104-15eb-4b37-bea6-0df3ac364199";
     private static final String MOTOR_CHARACTERISTIC = "d23157c4-8416-44ff-b41d-a548c2d28653";
 
-    private static final int TURRET_SPEED = 85;
+    private static final int TURRET_SPEED = 95;
 
     private enum CurrentHandleStateEnum {
         NONE, WIFI_LIST, WIFI_CONNECT, IP, SSH, VNC, STATS, POWER
@@ -92,11 +95,26 @@ public class ConnectActivity extends AppCompatActivity implements BLEManager, Vi
     private boolean isLoadingShowing = true;
     private CurrentHandleStateEnum state = CurrentHandleStateEnum.NONE;
     private HashMap<Action, ActionButton> controls;
+    private MediaPlayer mediaPlayer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_connect);
+
+        mediaPlayer = new MediaPlayer();
+        try {
+            AssetFileDescriptor descriptor = getAssets().openFd("pew.wav");
+            mediaPlayer.setDataSource(descriptor.getFileDescriptor(), descriptor.getStartOffset(), descriptor.getLength());
+            descriptor.close();
+
+            mediaPlayer.prepare();
+            mediaPlayer.setVolume(1f, 1f);
+            mediaPlayer.setLooping(false);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
 
         if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
             Toast.makeText(this, R.string.ble_not_supported, Toast.LENGTH_SHORT).show();
@@ -144,10 +162,20 @@ public class ConnectActivity extends AppCompatActivity implements BLEManager, Vi
 
         setupHelpView();
 
-        findViewById(R.id.forward).setOnTouchListener(this);
-        findViewById(R.id.back).setOnTouchListener(this);
-        findViewById(R.id.right).setOnTouchListener(this);
-        findViewById(R.id.left).setOnTouchListener(this);
+        findViewById(R.id.pew).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                playBeep();
+            }
+        });
+    }
+
+    public void playBeep() {
+        try {
+            mediaPlayer.start();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void checkRequirements() {

@@ -181,7 +181,7 @@ public class BLEPeripheral {
     }
 
     private BluetoothGattCharacteristic findCharacteristicById(String id) {
-        if (bluetoothGattService.getCharacteristics() != null) {
+        if (bluetoothGattService != null && bluetoothGattService.getCharacteristics() != null) {
             return bluetoothGattService.getCharacteristic(java.util.UUID.fromString(id));
         }
         return null;

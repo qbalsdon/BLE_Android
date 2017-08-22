@@ -17,7 +17,7 @@ import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
 import android.view.animation.LinearInterpolator;
 
-import com.balsdon.bleexample.R;
+import com.balsdon.pi_ble.R;
 
 /*************************************************************************
  *

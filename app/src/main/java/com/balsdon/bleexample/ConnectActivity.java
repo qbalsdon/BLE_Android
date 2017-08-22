@@ -40,6 +40,8 @@ import com.balsdon.bleexample.linux.TerminalResponse;
 import com.balsdon.bleexample.ui.ActionButton;
 import com.balsdon.bleexample.ui.StatsDialog;
 import com.balsdon.bleexample.ui.WifiInfoDialog;
+import com.balsdon.pi_ble.BuildConfig;
+import com.balsdon.pi_ble.R;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -48,7 +50,7 @@ import ru.dimorinny.showcasecard.ShowCaseView;
 import ru.dimorinny.showcasecard.position.ViewPosition;
 import ru.dimorinny.showcasecard.radius.Radius;
 
-public class ConnectActivity extends AppCompatActivity implements BLEManager, View.OnClickListener {
+public class ConnectActivity extends AppCompatActivity implements BLEManager {
 
     //TODO: THANKS: http://raspberrycan.blogspot.co.uk/
 
@@ -117,12 +119,6 @@ public class ConnectActivity extends AppCompatActivity implements BLEManager, Vi
         }
 
         setupHelpView();
-
-        findViewById(R.id.fwd).setOnClickListener(this);
-        findViewById(R.id.back).setOnClickListener(this);
-        findViewById(R.id.right).setOnClickListener(this);
-        findViewById(R.id.left).setOnClickListener(this);
-        findViewById(R.id.stop).setOnClickListener(this);
     }
 
     private void checkRequirements() {
@@ -757,26 +753,5 @@ public class ConnectActivity extends AppCompatActivity implements BLEManager, Vi
                         .show(ConnectActivity.this);
             }
         });
-    }
-
-    @Override
-    public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.fwd :
-                blePeripheral.writeCharacteristic(MOTOR_CHARACTERISTIC, "FWD 80");
-                break;
-            case R.id.back :
-                blePeripheral.writeCharacteristic(MOTOR_CHARACTERISTIC, "BCK 80");
-                break;
-            case R.id.left :
-                blePeripheral.writeCharacteristic(MOTOR_CHARACTERISTIC, "LEFT 80");
-                break;
-            case R.id.right :
-                blePeripheral.writeCharacteristic(MOTOR_CHARACTERISTIC, "RIGHT 80");
-                break;
-            case R.id.stop :
-                blePeripheral.writeCharacteristic(MOTOR_CHARACTERISTIC, "STOP 80");
-                break;
-        }
     }
 }

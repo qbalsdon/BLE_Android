@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 25
-    buildToolsVersion '26.0.0'
+    buildToolsVersion '27.0.3'
     defaultConfig {
         applicationId "com.balsdon.pi_ble"
         minSdkVersion 21
@@ -17,12 +17,15 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    flavorDimensions "normal"
     productFlavors {
         dev {
+            dimension "normal"
             applicationIdSuffix ".dev"
             versionNameSuffix "-dev"
         }
         prod {
+            dimension "normal"
             applicationIdSuffix ".full"
             versionNameSuffix ""
         }

@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Blueberry Pi</string>
+    <string name="app_name">Panda Pi</string>
     <string name="ble_not_supported">BLE is not supported</string>
     <string name="action_wifi">Wifi</string>
     <string name="empty">Nothing defined</string>
@@ -8,7 +8,7 @@
     <string name="action_vnc">VNC</string>
     <string name="action_stats">Stats</string>
     <string name="action_power">Power</string>
-    <string name="status_start">Searching for Blueberry Pi</string>
+    <string name="status_start">Searching for Panda Pi</string>
     <string name="status_found">Pi Located! Connecting</string>
     <string name="status_disconnected">Disconnected from Pi!</string>
     <string name="status_cancel_search">Search cancelled</string>
@@ -51,7 +51,7 @@
     <string name="dialog_temperature_title">CPU Temperature</string>
     <string name="dialog_temperature_description">The recommended temperature is between 0°C and 70°C</string>
     <string name="dialog_temperature_unit">ºc</string>
-    <string name="dialog_cpu_info_description">This is some basic information on your Blueberry Pi</string>
+    <string name="dialog_cpu_info_description">This is some basic information on your Panda Pi</string>
     <string name="ssh_chooser_title">Choose SSH client</string>
     <string name="error_no_ssh_client">No SSH client found</string>
     <string name="error_no_vnc_client">No VNC client found</string>

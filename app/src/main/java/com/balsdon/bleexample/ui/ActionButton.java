@@ -15,6 +15,7 @@ import android.widget.LinearLayout;
 
 
 import com.balsdon.pi_ble.R;
+import com.vlad1m1r.lemniscate.funny.HeartProgressView;
 import com.vlad1m1r.lemniscate.roulette.HypotrochoidProgressView;
 
 import ru.dimorinny.showcasecard.ShowCaseView;
@@ -44,7 +45,7 @@ public class ActionButton extends LinearLayout {
 
     private Button buttonView;
     private ImageView imageView;
-    private HypotrochoidProgressView loadingView;
+    private HeartProgressView loadingView;
 
     public ActionButton(Context context) {
         super(context);
@@ -66,7 +67,7 @@ public class ActionButton extends LinearLayout {
 
         buttonView = (Button) findViewById(R.id.action_button);
         imageView = (ImageView) findViewById(R.id.action_button_image);
-        loadingView = (HypotrochoidProgressView) findViewById(R.id.action_button_loading_image);
+        loadingView = (HeartProgressView) findViewById(R.id.action_button_loading_image);
 
         if (attrs == null) return;
         TypedArray typedArray = getContext().getTheme().obtainStyledAttributes(attrs, R.styleable.action_button, 0, 0);

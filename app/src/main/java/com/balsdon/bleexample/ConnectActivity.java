@@ -40,8 +40,8 @@ import com.balsdon.bleexample.linux.TerminalResponse;
 import com.balsdon.bleexample.ui.ActionButton;
 import com.balsdon.bleexample.ui.StatsDialog;
 import com.balsdon.bleexample.ui.WifiInfoDialog;
-import com.balsdon.pi_ble.BuildConfig;
-import com.balsdon.pi_ble.R;
+import com.balsdon.panda.pi.BuildConfig;
+import com.balsdon.panda.pi.R;
 
 import java.util.HashMap;
 import java.util.Map;

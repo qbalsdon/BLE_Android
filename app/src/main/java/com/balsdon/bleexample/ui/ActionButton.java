@@ -13,10 +13,8 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
-
-import com.balsdon.pi_ble.R;
+import com.balsdon.panda.pi.R;
 import com.vlad1m1r.lemniscate.funny.HeartProgressView;
-import com.vlad1m1r.lemniscate.roulette.HypotrochoidProgressView;
 
 import ru.dimorinny.showcasecard.ShowCaseView;
 import ru.dimorinny.showcasecard.position.ViewPosition;

@@ -14,8 +14,8 @@ import android.widget.Button;
 import android.widget.RadioGroup;
 
 import com.balsdon.bleexample.Command;
-import com.balsdon.pi_ble.R;
 import com.balsdon.bleexample.linux.TerminalCommands;
+import com.balsdon.panda.pi.R;
 
 /*************************************************************************
  *
